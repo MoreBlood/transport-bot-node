@@ -52,7 +52,7 @@ client.setWebHook(`${process.env.URL || config.get('url')}/bot${config.get('tele
 
 const getControll = () => new Promise((resolve, reject) => {
   let lastMessage;
-  vk.call('wall.get', { access_token: config.get('vk_secret'), owner_id: -72869598, filter: 'others' })
+  vk.call('wall.get', { access_token: config.get('vk_secret'), owner_id: -72869598, filter: 'others', count: 100 })
     .then((response) => {
       resolve(response.items
         .map(elem => ({
