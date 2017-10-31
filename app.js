@@ -61,7 +61,7 @@ const getControll = () => new Promise((resolve, reject) => {
         }))
         .filter(elem => findWordInSentence(elem.text))
         .map((elem) => {
-          lastMessage = elem;
+          lastMessage = lastMessage || elem;
           return elem;
         })
         .filter(elem => elem.time < LOAD_TIME)
