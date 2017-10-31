@@ -7,14 +7,16 @@ const bad = ['нет', 'нету', '\\?', 'никого', 'где', 'чисто'
 
 const refreshButton = {
   inline_keyboard: [
-    {
-      text: 'Обновить',
-      callback_data: 'refresh_control',
-    },
-    {
-      text: 'Группа ВК',
-      url: 'https://vk.com/kontroler_brest',
-    },
+    [
+      {
+        text: 'Обновить',
+        callback_data: 'refresh_control',
+      },
+      {
+        text: 'Группа ВК',
+        url: 'https://vk.com/kontroler_brest',
+      },
+    ],
   ],
 };
 const refreshButtonBlock = {
