@@ -3,7 +3,7 @@ const client = require('./lib/telegram');
 const log = require('./lib/log')(module);
 const VK = require('node-vkapi');
 
-const TRASH = ['еще', 'стоят', '\\.', '\\ \\.', '\\!', 'написать сообщение', 'собаки', 'опять', 'проверяют', 'не проверяют'];
+const TRASH = ['еще', 'стоят', '\\.', '\\ \\.', '\\!', ')', 'написать сообщение', 'собаки', 'опять', 'проверяют', 'не проверяют'];
 const BAD_WORDS = ['нет', 'нету', '\\?', 'никого', 'где', 'чисто', 'есть кто', 'до', 'как', 'дармоеды', 'гады', 'ничего', 'давайте',
   'будем', 'фоткать', 'народ', 'люди'];
 const LOAD_TIME = 60;
@@ -23,6 +23,7 @@ const REFRESH_BUTTONS = {
 };
 const REFRESH_BUTTONS_BLOCK = {
   reply_markup: REFRESH_BUTTONS,
+  parse_mode: 'Markdown',
 };
 
 const findWordInSentence = (sentence) => {
@@ -66,7 +67,7 @@ const getControll = () => new Promise((resolve, reject) => {
         })
         .filter(elem => elem.time < LOAD_TIME)
         .map(elem => `${deleteTrash(elem.text)} *(${elem.time} мин.)*`)
-        .join('\n') || `В последние ${LOAD_TIME} мин. не было замечено контроля${lastMessage ? `\nПоследнее сообщение о контроле ${lastMessage.time} мин. назад:\n${lastMessage.text}` : ''}`);
+        .join('\n') || `В последние *${LOAD_TIME} мин.* не было замечено контроля${lastMessage ? `\nПоследнее сообщение о контроле *${lastMessage.time} мин. назад*:\n${lastMessage.text}` : ''}`);
     })
     .catch(err => reject(err));
 });
@@ -81,6 +82,7 @@ client.onText(/\/control/g, (msg) => {
 client.onText(/\/start/g, (msg) => {
   const id = msg.chat.id;
   client.sendMessage(id, 'Чтобы узнать где контролеры отправь /control', {
+    parse_mode: 'Markdown',
     reply_markup: {
       inline_keyboard: [
         [
@@ -102,6 +104,7 @@ client.on('callback_query', (callbackQuery) => {
     chat_id: msg.chat.id,
     message_id: msg.message_id,
     reply_markup: REFRESH_BUTTONS,
+    parse_mode: 'Markdown',
   };
   if (action === 'control') {
     getControll()
