@@ -41,6 +41,12 @@ const deleteTrash = (sentence) => {
   }
 };
 
+const timeFormater = (time) => {
+  const hours = Math.floor(time / 60);
+  const minutes = time % 60;
+  return !hours && !minutes ? 'только что' : `${hours ? `${hours} час. ` : ''}${minutes ? `${minutes} мин.` : ''}`;
+};
+
 const vk = new VK({
   app: {
     id: config.get('vk_id'),
@@ -66,8 +72,8 @@ const getControll = () => new Promise((resolve, reject) => {
           return elem;
         })
         .filter(elem => elem.time < LOAD_TIME)
-        .map(elem => `${deleteTrash(elem.text)} *(${elem.time} мин.)*`)
-        .join('\n') || `В последние *${LOAD_TIME} мин.* не было замечено контроля${lastMessage ? `\nПоследнее сообщение о контроле *${lastMessage.time} мин. назад*:\n${lastMessage.text}` : ''}`);
+        .map(elem => `${deleteTrash(elem.text)} *(${timeFormater(elem.time)})*`)
+        .join('\n') || `В последние *${timeFormater(LOAD_TIME)}* не было замечено контроля${lastMessage ? `\nПоследнее сообщение о контроле *${timeFormater(lastMessage.time)} назад*:\n${lastMessage.text}` : ''}`);
     })
     .catch(err => reject(err));
 });
