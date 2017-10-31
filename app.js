@@ -3,8 +3,8 @@ const client = require('./lib/telegram');
 const VK = require('node-vkapi');
 
 
-const bad = ['нет', 'нету', '\\?', 'никого', 'где', 'чисто', 'есть кто', 'до', 'как', 'дармоеды', 'гады', 'ничего', 'давайте', 'будем', 'фоткать', 'народ', 'люди'];
-
+const BAD_WORDS = ['нет', 'нету', '\\?', 'никого', 'где', 'чисто', 'есть кто', 'до', 'как', 'дармоеды', 'гады', 'ничего', 'давайте', 'будем', 'фоткать', 'народ', 'люди'];
+const LOAD_TIME = 60;
 const refreshButton = {
   inline_keyboard: [
     [
@@ -24,8 +24,8 @@ const refreshButtonBlock = {
 };
 
 const findWordInSentence = (sentence) => {
-  for (let i = 0; i < bad.length; i += 1) {
-    if (new RegExp(bad[i], 'gi').test(sentence)) {
+  for (let i = 0; i < BAD_WORDS.length; i += 1) {
+    if (new RegExp(BAD_WORDS[i], 'gi').test(sentence)) {
       return false;
     }
   }
@@ -50,7 +50,7 @@ const getControll = () => new Promise((resolve, reject) => {
           time: Math.round((Date.now().toString().slice(this.length, -3) - elem.date) / 60),
         }))
         .filter(elem => findWordInSentence(elem.text))
-        .filter(elem => elem.time < 60)
+        .filter(elem => elem.time < LOAD_TIME)
         .map(elem => `${elem.text} (${elem.time} мин.)`)
         .join('\n'));
     })
@@ -61,7 +61,7 @@ const getControll = () => new Promise((resolve, reject) => {
 client.onText(/\/control/g, (msg) => {
   const id = msg.chat.id;
   getControll()
-    .then(res => client.sendMessage(id, res, refreshButtonBlock))
+    .then(res => client.sendMessage(id, res || `В полследние ${LOAD_TIME} мин. не было замечено котроля`, refreshButtonBlock))
     .catch(err => console.log(err));
 });
 
