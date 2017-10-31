@@ -83,16 +83,6 @@ client.on('callback_query', (callbackQuery) => {
   const opts = {
     chat_id: msg.chat.id,
     message_id: msg.message_id,
-    reply_markup: {
-      inline_keyboard: [
-        [
-          {
-            text: 'Обновить',
-            callback_data: 'refresh_control',
-          },
-        ],
-      ],
-    },
   };
   if (action === 'control') {
     getControll()
@@ -102,6 +92,16 @@ client.on('callback_query', (callbackQuery) => {
   if (action === 'refresh_control') {
     getControll()
       .then(res => client.editMessageText(res, opts))
+      .then(() => client.editMessageReplyMarkup({
+        inline_keyboard: [
+          [
+            {
+              text: 'Обновить',
+              callback_data: 'refresh_control',
+            },
+          ],
+        ],
+      }, opts))
       .catch(err => console.log(err));
   }
 });
