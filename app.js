@@ -44,7 +44,7 @@ const deleteTrash = (sentence) => {
 const timeFormater = (time) => {
   const hours = Math.floor(time / 60);
   const minutes = time % 60;
-  return !hours && !minutes ? 'только что' : `${hours ? `${hours} час. ` : ''}${minutes ? `${minutes} мин.` : ''}`;
+  return !hours && !minutes ? 'только что' : `${hours ? `${hours} час.` : ''}${hours && minutes ? ' ' : ''}${minutes ? `${minutes} мин.` : ''}`;
 };
 
 const vk = new VK({
@@ -73,7 +73,7 @@ const getControll = () => new Promise((resolve, reject) => {
         })
         .filter(elem => elem.time < LOAD_TIME)
         .map(elem => `${deleteTrash(elem.text)} *(${timeFormater(elem.time)})*`)
-        .join('\n') || `В последние *${timeFormater(LOAD_TIME)}* не было замечено контроля${lastMessage ? `\nПоследнее сообщение о контроле *${timeFormater(lastMessage.time)} назад*:\n${lastMessage.text}` : ''}`);
+        .join('\n') || `За *${timeFormater(LOAD_TIME)}* не было замечено контроля${lastMessage ? `\nПоследнее сообщение о контроле *${timeFormater(lastMessage.time)} назад*:\n${lastMessage.text}` : ''}`);
     })
     .catch(err => reject(err));
 });
