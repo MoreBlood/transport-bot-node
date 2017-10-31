@@ -51,8 +51,8 @@ const getControll = () => new Promise((resolve, reject) => {
         }))
         .filter(elem => findWordInSentence(elem.text))
         .filter(elem => elem.time < LOAD_TIME)
-        .map(elem => `${elem.text} (${elem.time} мин.)`)
-        .join('\n') || `В последние ${LOAD_TIME} мин. не было замечено котроля`);
+        .map(elem => `${elem.text} *(${elem.time} мин.)*`)
+        .join('\n') || `В последние ${LOAD_TIME} мин. не было замечено контроля`);
     })
     .catch(err => reject(err));
 });
