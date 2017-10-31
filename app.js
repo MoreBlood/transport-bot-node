@@ -83,6 +83,16 @@ client.on('callback_query', (callbackQuery) => {
   const opts = {
     chat_id: msg.chat.id,
     message_id: msg.message_id,
+    reply_markup: {
+      inline_keyboard: [
+        [
+          {
+            text: 'Обновить',
+            callback_data: 'refresh_control',
+          },
+        ],
+      ],
+    },
   };
   if (action === 'control') {
     getControll()
