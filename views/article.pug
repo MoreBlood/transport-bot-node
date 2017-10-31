@@ -1,0 +1,11 @@
+extends layout
+
+block content
+  .content
+    form(action="", method="get")
+        input(type="text", name="link", pattern="https?://.+", required)
+        button(type="submit")= 'Convert'
+    .center
+        h2= title
+        div !{article}
+    
