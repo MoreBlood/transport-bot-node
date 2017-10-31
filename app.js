@@ -2,7 +2,7 @@ const config = require('./lib/config');
 const client = require('./lib/telegram');
 const VK = require('node-vkapi');
 
-
+const TRASH = ['еще', 'стоят', '.', ' .', '!', 'написать сообщение', 'собаки', 'опять', 'проверяют', 'не проверяют'];
 const BAD_WORDS = ['нет', 'нету', '\\?', 'никого', 'где', 'чисто', 'есть кто', 'до', 'как', 'дармоеды', 'гады', 'ничего', 'давайте', 'будем', 'фоткать', 'народ', 'люди'];
 const LOAD_TIME = 60;
 const refreshButton = {
@@ -32,6 +32,12 @@ const findWordInSentence = (sentence) => {
   return true;
 };
 
+const deleteTrash = (sentence) => {
+  for (let i = 0; i < TRASH.length; i += 1) {
+    sentence.replace(new RegExp(TRASH[i], 'ig'), '');
+  }
+};
+
 const vk = new VK({
   app: {
     id: config.get('vk_id'),
@@ -51,7 +57,7 @@ const getControll = () => new Promise((resolve, reject) => {
         }))
         .filter(elem => findWordInSentence(elem.text))
         .filter(elem => elem.time < LOAD_TIME)
-        .map(elem => `${elem.text} *(${elem.time} мин.)*`)
+        .map(elem => `${deleteTrash(elem.text)} *(${elem.time} мин.)*`)
         .join('\n') || `В последние ${LOAD_TIME} мин. не было замечено контроля`);
     })
     .catch(err => reject(err));
