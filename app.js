@@ -3,7 +3,7 @@ const client = require('./lib/telegram');
 const log = require('./lib/log')(module);
 const VK = require('node-vkapi');
 
-const TRASH = ['еще', 'стоят', '\\.', '\\ \\.', '\\!', ')', 'написать сообщение', 'собаки', 'опять', 'проверяют', 'не проверяют'];
+const TRASH = ['еще', 'стоят', '\\.', '\\ \\.', '\\!', '\)', 'написать сообщение', 'собаки', 'опять', 'проверяют', 'не проверяют'];
 const BAD_WORDS = ['нет', 'нету', '\\?', 'никого', 'где', 'чисто', 'есть кто', 'до', 'как', 'дармоеды', 'гады', 'ничего', 'давайте',
   'будем', 'фоткать', 'народ', 'люди'];
 const LOAD_TIME = 60;
@@ -73,7 +73,7 @@ const getControll = () => new Promise((resolve, reject) => {
         })
         .filter(elem => elem.time < LOAD_TIME)
         .map(elem => `${deleteTrash(elem.text)} *(${timeFormater(elem.time)})*`)
-        .join('\n') || `За *${timeFormater(LOAD_TIME)}* не было замечено контроля${lastMessage ? `\nПоследнее сообщение о контроле *${timeFormater(lastMessage.time)} назад*:\n${lastMessage.text}` : ''}`);
+        .join('\n') || `За *${timeFormater(LOAD_TIME)}* не было замечено контроля${lastMessage ? `\nПоследнее сообщение *${timeFormater(lastMessage.time)} назад*:\n${lastMessage.text}` : ''}`);
     })
     .catch(err => reject(err));
 });
@@ -87,7 +87,7 @@ client.onText(/\/control/g, (msg) => {
 
 client.onText(/\/start/g, (msg) => {
   const id = msg.chat.id;
-  client.sendMessage(id, 'Чтобы узнать где контролеры отправь /control', {
+  client.sendMessage(id, 'Чтобы узнать где контролеры отправь /control либо жми на кнопку', {
     parse_mode: 'Markdown',
     reply_markup: {
       inline_keyboard: [
