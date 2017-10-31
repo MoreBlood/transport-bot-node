@@ -80,9 +80,18 @@ client.onText(/\/start/g, (msg) => {
 client.on('callback_query', (callbackQuery) => {
   const action = callbackQuery.data;
   const msg = callbackQuery.message;
-  if (action === 'control' || action === 'refresh_control') {
+  const opts = {
+    chat_id: msg.chat.id,
+    message_id: msg.message_id,
+  };
+  if (action === 'control') {
     getControll()
       .then(res => client.sendMessage(msg.chat.id, res, refreshButton))
+      .catch(err => console.log(err));
+  }
+  if (action === 'refresh_control') {
+    getControll()
+      .then(res => client.editMessageText(res, opts))
       .catch(err => console.log(err));
   }
 });
