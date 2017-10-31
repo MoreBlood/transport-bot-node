@@ -52,7 +52,7 @@ const getControll = () => new Promise((resolve, reject) => {
         .filter(elem => findWordInSentence(elem.text))
         .filter(elem => elem.time < LOAD_TIME)
         .map(elem => `${elem.text} (${elem.time} мин.)`)
-        .join('\n'));
+        .join('\n') || `В последние ${LOAD_TIME} мин. не было замечено котроля`);
     })
     .catch(err => reject(err));
 });
@@ -61,7 +61,7 @@ const getControll = () => new Promise((resolve, reject) => {
 client.onText(/\/control/g, (msg) => {
   const id = msg.chat.id;
   getControll()
-    .then(res => client.sendMessage(id, res || `В полследние ${LOAD_TIME} мин. не было замечено котроля`, refreshButtonBlock))
+    .then(res => client.sendMessage(id, res, refreshButtonBlock))
     .catch(err => console.log(err));
 });
 
