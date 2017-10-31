@@ -4,6 +4,19 @@ const VK = require('node-vkapi');
 
 
 const bad = ['нет', 'нету', '\\?', 'никого', 'где', 'чисто', 'есть кто', 'до', 'как', 'дармоеды', 'гады', 'ничего', 'давайте', 'будем', 'фоткать', 'народ', 'люди'];
+const refreshButton = {
+  reply_markup: {
+    inline_keyboard: [
+      [
+        {
+          text: 'Обновить',
+          callback_data: 'refresh_control',
+        },
+      ],
+    ],
+  },
+};
+
 
 const findWordInSentence = (sentence) => {
   for (let i = 0; i < bad.length; i += 1) {
@@ -40,26 +53,15 @@ const getControll = () => new Promise((resolve, reject) => {
 });
 
 
-client.onText(/\/control/, (msg) => {
+client.onText(/\/control/g, (msg) => {
   const id = msg.chat.id;
   getControll()
-    .then(res => client.sendMessage(id, res, {
-      reply_markup: {
-        inline_keyboard: [
-          [
-            {
-              text: 'Обновить',
-              callback_data: 'refresh_control',
-            },
-          ],
-        ],
-      },
-    }))
+    .then(res => client.sendMessage(id, res, refreshButton))
     .catch(err => console.log(err));
 });
 
 
-client.onText(/\/start/, (msg) => {
+client.onText(/\/start/g, (msg) => {
   const id = msg.chat.id;
   client.sendMessage(id, 'Чтобы узнать где контролеры отправь /control', {
     reply_markup: {
@@ -80,18 +82,7 @@ client.on('callback_query', (callbackQuery) => {
   const msg = callbackQuery.message;
   if (action === 'control' || action === 'refresh_control') {
     getControll()
-      .then(res => client.sendMessage(msg.chat.id, res, {
-        reply_markup: {
-          inline_keyboard: [
-            [
-              {
-                text: 'Обновить',
-                callback_data: 'refresh_control',
-              },
-            ],
-          ],
-        },
-      }))
+      .then(res => client.sendMessage(msg.chat.id, res, refreshButton))
       .catch(err => console.log(err));
   }
 });
