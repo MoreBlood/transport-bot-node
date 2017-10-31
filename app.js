@@ -1,11 +1,13 @@
 const config = require('./lib/config');
 const client = require('./lib/telegram');
+const log = require('./lib/log')(module);
 const VK = require('node-vkapi');
 
 const TRASH = ['еще', 'стоят', '\\.', '\\ \\.', '\\!', 'написать сообщение', 'собаки', 'опять', 'проверяют', 'не проверяют'];
-const BAD_WORDS = ['нет', 'нету', '\\?', 'никого', 'где', 'чисто', 'есть кто', 'до', 'как', 'дармоеды', 'гады', 'ничего', 'давайте', 'будем', 'фоткать', 'народ', 'люди'];
+const BAD_WORDS = ['нет', 'нету', '\\?', 'никого', 'где', 'чисто', 'есть кто', 'до', 'как', 'дармоеды', 'гады', 'ничего', 'давайте',
+  'будем', 'фоткать', 'народ', 'люди'];
 const LOAD_TIME = 60;
-const refreshButton = {
+const REFRESH_BUTTONS = {
   inline_keyboard: [
     [
       {
@@ -19,8 +21,8 @@ const refreshButton = {
     ],
   ],
 };
-const refreshButtonBlock = {
-  reply_markup: refreshButton,
+const REFRESH_BUTTONS_BLOCK = {
+  reply_markup: REFRESH_BUTTONS,
 };
 
 const findWordInSentence = (sentence) => {
@@ -34,7 +36,7 @@ const findWordInSentence = (sentence) => {
 
 const deleteTrash = (sentence) => {
   for (let i = 0; i < TRASH.length; i += 1) {
-    sentence.replace(new RegExp(TRASH[i], 'ig'), '');
+    sentence.replace(new RegExp(TRASH[i], 'gi'), '');
   }
 };
 
@@ -44,10 +46,12 @@ const vk = new VK({
   },
 });
 
+
 client.openWebHook();
 client.setWebHook(`${process.env.URL || config.get('url')}/bot${config.get('telegram_bot_api_token')}`);
 
 const getControll = () => new Promise((resolve, reject) => {
+  let lastMessage;
   vk.call('wall.get', { access_token: config.get('vk_secret'), owner_id: -72869598, filter: 'others' })
     .then((response) => {
       resolve(response.items
@@ -56,21 +60,23 @@ const getControll = () => new Promise((resolve, reject) => {
           time: Math.round((Date.now().toString().slice(this.length, -3) - elem.date) / 60),
         }))
         .filter(elem => findWordInSentence(elem.text))
+        .map((elem) => {
+          lastMessage = elem;
+          return elem;
+        })
         .filter(elem => elem.time < LOAD_TIME)
         .map(elem => `${deleteTrash(elem.text)} *(${elem.time} мин.)*`)
-        .join('\n') || `В последние ${LOAD_TIME} мин. не было замечено контроля`);
+        .join('\n') || `В последние ${LOAD_TIME} мин. не было замечено контроля${lastMessage ? `\nПоследнее сообщение о контроле ${lastMessage.time} мин. назад:\n${lastMessage.text}` : ''}`);
     })
     .catch(err => reject(err));
 });
 
-
 client.onText(/\/control/g, (msg) => {
   const id = msg.chat.id;
   getControll()
-    .then(res => client.sendMessage(id, res, refreshButtonBlock))
-    .catch(err => console.log(err));
+    .then(res => client.sendMessage(id, res, REFRESH_BUTTONS_BLOCK))
+    .catch(err => log.error(err));
 });
-
 
 client.onText(/\/start/g, (msg) => {
   const id = msg.chat.id;
@@ -85,7 +91,8 @@ client.onText(/\/start/g, (msg) => {
         ],
       ],
     },
-  });
+  })
+    .catch(err => log.error(err.message));
 });
 
 client.on('callback_query', (callbackQuery) => {
@@ -94,17 +101,17 @@ client.on('callback_query', (callbackQuery) => {
   const opts = {
     chat_id: msg.chat.id,
     message_id: msg.message_id,
-    reply_markup: refreshButton,
+    reply_markup: REFRESH_BUTTONS,
   };
   if (action === 'control') {
     getControll()
-      .then(res => client.sendMessage(msg.chat.id, res, refreshButtonBlock))
-      .catch(err => console.log(err));
+      .then(res => client.sendMessage(msg.chat.id, res, REFRESH_BUTTONS_BLOCK))
+      .catch(err => log.error(err.message));
   }
   if (action === 'refresh_control') {
     getControll()
       .then(res => client.editMessageText(res, opts))
-      .catch(err => console.log(err.message));
+      .catch(err => log.error(err.message));
   }
 });
 
