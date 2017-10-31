@@ -1,49 +1,98 @@
-const express = require('express');
-const path = require('path');
-const logger = require('morgan');
-const cookieParser = require('cookie-parser');
-const bodyParser = require('body-parser');
 const config = require('./lib/config');
-
-const index = require('./routes/index');
-const randomstring = require('randomstring');
 const client = require('./lib/telegram');
+const VK = require('node-vkapi');
 
-const WEBHOOK_TOKEN = randomstring.generate(16);
 
-const app = express();
+const bad = ['нет', 'нету', '\\?', 'никого', 'где', 'чисто', 'есть кто', 'до', 'как', 'дармоеды', 'гады', 'ничего', 'давайте', 'будем', 'фоткать', 'народ', 'люди'];
 
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'pug');
+const findWordInSentence = (sentence) => {
+  for (let i = 0; i < bad.length; i += 1) {
+    if (new RegExp(bad[i], 'gi').test(sentence)) {
+      return false;
+    }
+  }
+  return true;
+};
 
-app.use(logger('dev'));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
-
-app.use('/', index);
-
-client.setWebhook(`${config.get('url')}/${WEBHOOK_TOKEN}`);
-app.use(`/${WEBHOOK_TOKEN}`, require('./routes/bot'));
-
-// catch 404 and forward to error handler
-app.use((req, res, next) => {
-  const err = new Error('Not Found');
-  err.status = 404;
-  next(err);
+const vk = new VK({
+  app: {
+    id: config.get('vk_id'),
+  },
 });
 
-// error handler
-app.use((err, req, res, next) => {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
+client.openWebHook();
+client.setWebHook(`${process.env.URL || config.get('url')}/bot${config.get('telegram_bot_api_token')}`);
 
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
+const getControll = () => new Promise((resolve, reject) => {
+  vk.call('wall.get', { access_token: config.get('vk_secret'), owner_id: -72869598, filter: 'others' })
+    .then((response) => {
+      resolve(response.items
+        .map(elem => ({
+          text: elem.text,
+          time: Math.round((Date.now().toString().slice(this.length, -3) - elem.date) / 60),
+        }))
+        .filter(elem => findWordInSentence(elem.text))
+        .filter(elem => elem.time < 60)
+        .map(elem => `${elem.text} (${elem.time} мин.)`)
+        .join('\n'));
+    })
+    .catch(err => reject(err));
 });
 
-module.exports = app;
+
+client.onText(/\/control/, (msg) => {
+  const id = msg.chat.id;
+  getControll()
+    .then(res => client.sendMessage(id, res, {
+      reply_markup: {
+        inline_keyboard: [
+          [
+            {
+              text: 'Обновить',
+              callback_data: 'refresh_control',
+            },
+          ],
+        ],
+      },
+    }))
+    .catch(err => console.log(err));
+});
+
+
+client.onText(/\/start/, (msg) => {
+  const id = msg.chat.id;
+  client.sendMessage(id, 'Чтобы узнать где контролеры отправь /control', {
+    reply_markup: {
+      inline_keyboard: [
+        [
+          {
+            text: 'Где контроллеры?',
+            callback_data: 'control',
+          },
+        ],
+      ],
+    },
+  });
+});
+
+client.on('callback_query', (callbackQuery) => {
+  const action = callbackQuery.data;
+  const msg = callbackQuery.message;
+  if (action === 'control' || action === 'refresh_control') {
+    getControll()
+      .then(res => client.sendMessage(msg.chat.id, res, {
+        reply_markup: {
+          inline_keyboard: [
+            [
+              {
+                text: 'Обновить',
+                callback_data: 'refresh_control',
+              },
+            ],
+          ],
+        },
+      }))
+      .catch(err => console.log(err));
+  }
+});
+
