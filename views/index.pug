@@ -1,8 +1,0 @@
-extends layout
-
-block content
-  .enter
-    h1= 'Lite page'
-    form(action="lite", method="get")
-      input(type="text", name="link", pattern="https?://.+", required)
-      button(type="submit")= 'Convert'
