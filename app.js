@@ -4,7 +4,7 @@ const log = require('./lib/log')(module);
 const VK = require('node-vkapi');
 
 const TRASH = ['еще', 'стоят', '\\!', '\\)', 'написать сообщение', 'собаки', 'опять', 'проверяют', 'не проверяют'];
-const BAD_WORDS = ['нет', 'нету', '\\?', 'никого', 'где', 'не обнаруж', 'чисто', 'есть кто', 'до', 'как', 'дармоеды', 'гады', 'ничего', 'давайте',
+const BAD_WORDS = ['нет', 'нету', '\\?', 'никого', 'ли', 'где', 'не обнаруж', 'чисто', 'есть кто', 'до', 'как', 'дармоеды', 'гады', 'ничего', 'давайте',
   'будем', 'фоткать', 'народ', 'люди'];
 const LOAD_TIME = 60;
 const REFRESH_BUTTONS = {
@@ -74,7 +74,7 @@ const getControll = minutes => new Promise((resolve, reject) => {
         })
         .filter(elem => elem.time < (minutes || LOAD_TIME))
         .map(elem => `${deleteTrash(elem.text)} *(${timeFormater(elem.time)})*`)
-        .join('\n') || `За *${timeFormater(LOAD_TIME)}* не было замечено контроля${lastMessage ? `\nПоследнее сообщение *${timeFormater(lastMessage.time)} назад*:\n${lastMessage.text}` : ''}`);
+        .join('\n') || `За *${timeFormater(LOAD_TIME)}* не было замечено контроля${lastMessage ? `\nПоследнее сообщение *${timeFormater(lastMessage.time)} назад*:\n${deleteTrash(lastMessage.text)}` : ''}`);
     })
     .catch(err => reject(err));
 });
