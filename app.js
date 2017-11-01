@@ -39,6 +39,7 @@ const deleteTrash = (sentence) => {
   for (let i = 0; i < TRASH.length; i += 1) {
     sentence.replace(new RegExp(TRASH[i], 'gi'), '');
   }
+  return sentence;
 };
 
 const timeFormater = (time) => {
