@@ -72,7 +72,7 @@ const getControll = minutes => new Promise((resolve, reject) => {
           lastMessage = lastMessage || elem;
           return elem;
         })
-        .filter(elem => elem.time < minutes || LOAD_TIME)
+        .filter(elem => elem.time < (minutes || LOAD_TIME))
         .map(elem => `${deleteTrash(elem.text)} *(${timeFormater(elem.time)})*`)
         .join('\n') || `За *${timeFormater(LOAD_TIME)}* не было замечено контроля${lastMessage ? `\nПоследнее сообщение *${timeFormater(lastMessage.time)} назад*:\n${lastMessage.text}` : ''}`);
     })
