@@ -4,7 +4,7 @@ const log = require('./lib/log')(module);
 const VK = require('node-vkapi');
 
 const TRASH = ['еще', 'стоят', '\\!', '\\)', 'написать сообщение', 'собаки', 'опять', 'проверяют', 'не проверяют'];
-const BAD_WORDS = ['нет', 'нету', '\\?', 'никого', 'где', 'чисто', 'есть кто', 'до', 'как', 'дармоеды', 'гады', 'ничего', 'давайте',
+const BAD_WORDS = ['нет', 'нету', '\\?', 'никого', 'где', 'не обнаруж', 'чисто', 'есть кто', 'до', 'как', 'дармоеды', 'гады', 'ничего', 'давайте',
   'будем', 'фоткать', 'народ', 'люди'];
 const LOAD_TIME = 60;
 const REFRESH_BUTTONS = {
@@ -58,7 +58,7 @@ const vk = new VK({
 client.openWebHook();
 client.setWebHook(`${process.env.URL || config.get('url')}/bot${config.get('telegram_bot_api_token')}`);
 
-const getControll = () => new Promise((resolve, reject) => {
+const getControll = minutes => new Promise((resolve, reject) => {
   let lastMessage;
   vk.call('wall.get', { access_token: config.get('vk_secret'), owner_id: -72869598, filter: 'others', count: 100 })
     .then((response) => {
@@ -72,7 +72,7 @@ const getControll = () => new Promise((resolve, reject) => {
           lastMessage = lastMessage || elem;
           return elem;
         })
-        .filter(elem => elem.time < LOAD_TIME)
+        .filter(elem => elem.time < minutes || LOAD_TIME)
         .map(elem => `${deleteTrash(elem.text)} *(${timeFormater(elem.time)})*`)
         .join('\n') || `За *${timeFormater(LOAD_TIME)}* не было замечено контроля${lastMessage ? `\nПоследнее сообщение *${timeFormater(lastMessage.time)} назад*:\n${lastMessage.text}` : ''}`);
     })
